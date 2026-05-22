@@ -108,6 +108,32 @@
     .result-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
     #result-value { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.12em; color: #f1f5f9; word-break: break-all; min-height: 2.2rem; }
 
+    .history { width: 100%; max-width: 480px; margin-top: 16px; }
+    .history[hidden] { display: none; }
+    .history-header {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #475569; margin-bottom: 8px;
+    }
+    .history-clear {
+      background: none; border: none; color: #64748b; font-size: 0.75rem;
+      cursor: pointer; padding: 2px 8px; border-radius: 6px;
+    }
+    .history-clear:hover { color: #cbd5e1; background: #1e293b; }
+    .history-items { display: flex; flex-direction: column; gap: 6px; }
+    .history-item {
+      padding: 10px 14px; background: #1e293b; border-radius: 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .history-item:hover, .history-item:active { background: #243044; }
+    .history-item.flash { background: #14532d; transition: background 0.3s; }
+    .history-code {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-weight: 600; letter-spacing: 0.08em; color: #f1f5f9;
+    }
+    .history-time { font-size: 0.78rem; color: #64748b; }
+
     .rejected-list { width: 100%; max-width: 480px; margin-top: 16px; }
     .rejected-list[hidden] { display: none; }
     .rejected-header {
@@ -151,7 +177,7 @@
 </head>
 <body>
 
-<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v14</span></h1>
+<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v15</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -177,6 +203,14 @@
   <div id="result-value">—</div>
 </div>
 <div id="copy-hint">已複製序號！</div>
+
+<div class="history" id="history" hidden>
+  <div class="history-header">
+    <span>掃描歷史 <span id="history-count">(0)</span></span>
+    <button class="history-clear" id="btn-clear-history">清空</button>
+  </div>
+  <div class="history-items" id="history-items"></div>
+</div>
 
 <div class="rejected-list" id="rejected-list" hidden>
   <div class="rejected-header" id="rejected-header">略過的條碼 <span id="rejected-count">(0)</span></div>
@@ -212,6 +246,10 @@
   const rejectedList   = document.getElementById('rejected-list');
   const rejectedHeader = document.getElementById('rejected-header');
   const rejectedCount  = document.getElementById('rejected-count');
+  const historyEl      = document.getElementById('history');
+  const historyItems   = document.getElementById('history-items');
+  const historyCount   = document.getElementById('history-count');
+  const btnClearHistory = document.getElementById('btn-clear-history');
   const copyHint    = document.getElementById('copy-hint');
   const btnStart    = document.getElementById('btn-start');
   const btnStop     = document.getElementById('btn-stop');
@@ -271,6 +309,63 @@
     rejectedCount.textContent = `(${rejectedSet.size})`;
   }
 
+  // ---- 掃描歷史 (localStorage) ----
+  const HISTORY_KEY = 'studioa-barcode-history';
+  const HISTORY_MAX = 20;
+
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+    catch (_) { return []; }
+  }
+  function saveHistory(arr) {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); } catch (_) {}
+  }
+  function addHistory(code) {
+    const list = loadHistory().filter(it => it.code !== code);
+    list.unshift({ code, t: Date.now() });
+    saveHistory(list.slice(0, HISTORY_MAX));
+    renderHistory();
+  }
+  function clearHistory() {
+    saveHistory([]);
+    renderHistory();
+  }
+  function relativeTime(t) {
+    const sec = Math.floor((Date.now() - t) / 1000);
+    if (sec < 60)    return '剛剛';
+    if (sec < 3600)  return Math.floor(sec / 60) + ' 分前';
+    if (sec < 86400) return Math.floor(sec / 3600) + ' 小時前';
+    return Math.floor(sec / 86400) + ' 天前';
+  }
+  function renderHistory() {
+    const list = loadHistory();
+    historyCount.textContent = `(${list.length})`;
+    historyEl.hidden = list.length === 0;
+    historyItems.innerHTML = '';
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      const codeSpan = document.createElement('span');
+      codeSpan.className = 'history-code';
+      codeSpan.textContent = item.code;
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'history-time';
+      timeSpan.textContent = relativeTime(item.t);
+      row.appendChild(codeSpan);
+      row.appendChild(timeSpan);
+      row.addEventListener('click', () => {
+        if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+        navigator.clipboard.writeText(item.code).then(() => {
+          row.classList.add('flash');
+          setTimeout(() => row.classList.remove('flash'), 400);
+          copyHint.style.opacity = '1';
+          setTimeout(() => copyHint.style.opacity = '0', 1500);
+        }).catch(() => {});
+      });
+      historyItems.appendChild(row);
+    });
+  }
+
   function handleCode(raw) {
     if (!running) return; // 已停止,忽略晚到的 callback
     const code = normalizeSerial(raw);
@@ -287,6 +382,7 @@
 
       lastFound = code;
       showResult(code);
+      addHistory(code);
       if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
       // 找到即停止相機,節省電力 & 避免重複觸發
       stopScanner();
@@ -408,7 +504,13 @@
   btnStart.addEventListener('click', () => startScanner(false));
   btnStop.addEventListener('click', stopScanner);
   btnClear.addEventListener('click', clearAll);
+  btnClearHistory.addEventListener('click', () => {
+    if (confirm('確定要清空全部掃描歷史?')) clearHistory();
+  });
   rejectedHeader.addEventListener('click', () => rejectedList.classList.toggle('open'));
+
+  // 開頁就 render 一次歷史(從 localStorage 拉)
+  renderHistory();
 
   // 嘗試載入後自動啟動相機。
   // iOS Safari 因安全規範禁止無使用者手勢的 getUserMedia,會靜默失敗,
