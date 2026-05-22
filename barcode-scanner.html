@@ -133,7 +133,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v9</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v10</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -249,11 +249,10 @@
   }
 
   function handleCode(raw) {
+    if (!running) return; // 已停止,忽略晚到的 callback
     const code = normalizeSerial(raw);
 
     if (code) {
-      if (cooldown && code === lastFound) return;
-
       // 連續讀到同一個值 CONFIRM_COUNT 次才採信，避免單幀偽讀
       if (code === pendingCode) {
         pendingHits++;
@@ -263,14 +262,13 @@
       }
       if (pendingHits < CONFIRM_COUNT) return;
 
-      if (code !== lastFound) {
-        lastFound = code;
-        showResult(code);
-        setStatus('found', '找到 10 碼序號！點擊結果可複製');
-        if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
-        cooldown = true;
-        setTimeout(() => { cooldown = false; }, 2500);
-      }
+      lastFound = code;
+      showResult(code);
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+      // 找到即停止相機,節省電力 & 避免重複觸發
+      stopScanner();
+      // stopScanner 會把狀態列改成「已停止掃描」,我們再覆蓋為成功訊息
+      setStatus('found', '找到序號！相機已關閉，點擊結果可複製');
       return;
     }
 
