@@ -332,15 +332,44 @@
     running = true;
     btnStart.textContent = '掃描中…';
     btnStart.disabled = true;
-    setStatus('scanning', '正在啟動相機…');
+    setStatus('scanning', '正在請求相機權限…');
 
+    // 步驟1：先用原生 API 明確觸發權限詢問
+    let testStream;
     try {
-      // 取得鏡頭列表，優先使用後鏡頭
+      testStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } }
+      });
+      testStream.getTracks().forEach(t => t.stop()); // 權限拿到後先停掉
+    } catch (e) {
+      running = false;
+      btnStart.textContent = '開始掃描';
+      btnStart.disabled = false;
+      if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+        setStatus('', '相機權限被拒絕，請到瀏覽器設定中允許相機後再試');
+      } else if (e.name === 'NotFoundError') {
+        setStatus('', '找不到相機裝置');
+      } else {
+        setStatus('', `無法開啟相機：${e.message}`);
+      }
+      return;
+    }
+
+    // 步驟2：確認 ZXing 函式庫有載入
+    if (typeof ZXingBrowser === 'undefined') {
+      running = false;
+      btnStart.textContent = '開始掃描';
+      btnStart.disabled = false;
+      setStatus('', '條碼函式庫載入失敗，請重新整理頁面');
+      return;
+    }
+
+    // 步驟3：啟動 ZXing 掃描（權限已取得，listVideoInputDevices 現在能拿到 label）
+    try {
+      reader = new ZXingBrowser.BrowserMultiFormatReader();
       const devices = await ZXingBrowser.BrowserMultiFormatReader.listVideoInputDevices();
       const backCam = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1];
       const deviceId = backCam ? backCam.deviceId : undefined;
-
-      reader = new ZXingBrowser.BrowserMultiFormatReader();
 
       reader.decodeFromVideoDevice(deviceId, video, (result, err) => {
         if (!result) return;
@@ -348,24 +377,18 @@
         const code = result.getText().trim();
         const type = result.getBarcodeFormat();
 
-        if (cooldown && code === lastFound) return; // 去抖動
+        if (cooldown && code === lastFound) return;
 
         if (code.length === TARGET_LENGTH) {
-          // 合格：10碼
           if (code !== lastFound) {
             lastFound = code;
             showResult(code, type);
             setStatus('found', `找到 10 碼條碼！點擊結果可複製`);
-
-            // 震動回饋（手機）
             if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
-
-            // 短暫冷卻，避免同一條碼一直觸發
             cooldown = true;
             setTimeout(() => { cooldown = false; }, 2000);
           }
         } else {
-          // 不合格：記錄但略過
           addRejected(code);
           setStatus('rejected', `略過：「${code}」共 ${code.length} 碼，需要 10 碼`);
           setTimeout(() => setStatus('scanning', '掃描中，將鏡頭對準條碼…'), 1200);
@@ -377,7 +400,7 @@
       running = false;
       btnStart.textContent = '開始掃描';
       btnStart.disabled = false;
-      setStatus('', `錯誤：${e.message || '無法存取相機'}`);
+      setStatus('', `掃描器啟動失敗：${e.message}`);
     }
   }
 
