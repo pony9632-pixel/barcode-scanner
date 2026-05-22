@@ -107,7 +107,7 @@
     button:hover { opacity: 0.85; }
     button:disabled { opacity: 0.45; cursor: not-allowed; }
     #btn-start { background: #63e6be; color: #0f172a; }
-    #btn-stop  { background: #f87171; color: #0f172a; display: none; }
+    #btn-stop  { background: #f87171; color: #0f172a; }
     #btn-clear { background: #334155; color: #e2e8f0; }
 
     #copy-hint { font-size: 0.78rem; color: #4ade80; text-align: center; height: 1em; margin-top: 8px; opacity: 0; transition: opacity 0.3s; }
@@ -115,7 +115,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v1</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v2</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -150,7 +150,7 @@
 
 <div class="btn-row">
   <button id="btn-start">開始掃描</button>
-  <button id="btn-stop">停止掃描</button>
+  <button id="btn-stop" style="display:none">停止掃描</button>
   <button id="btn-clear">清除結果</button>
 </div>
 
@@ -183,22 +183,19 @@
   let cooldown    = false;
   const rejectedSet = new Set();
 
-  // 只啟用線性條碼 + QR（iPhone 17 Pro 盒裝序號是 Code 128）
+  // iPhone 盒裝序號是 Code 128。只啟用 Code 128 大幅降低偽讀率
   const hints = new Map();
-  hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-    BarcodeFormat.CODE_128,
-    BarcodeFormat.CODE_39,
-    BarcodeFormat.CODE_93,
-    BarcodeFormat.EAN_13,
-    BarcodeFormat.EAN_8,
-    BarcodeFormat.UPC_A,
-    BarcodeFormat.UPC_E,
-    BarcodeFormat.ITF,
-    BarcodeFormat.CODABAR,
-    BarcodeFormat.QR_CODE,
-    BarcodeFormat.DATA_MATRIX
-  ]);
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128]);
   hints.set(DecodeHintType.TRY_HARDER, true);
+
+  // 嚴格接受條件：10 碼大寫英數
+  const ACCEPT_RE = /^[A-Z0-9]{10}$/;
+  // 略過清單只顯示「接近正確」的字串，亂碼直接丟棄
+  const REJECT_VISIBLE_RE = /^[A-Za-z0-9]{6,14}$/;
+  // 同一個 code 連續讀到幾次才採信
+  const CONFIRM_COUNT = 2;
+  let pendingCode  = '';
+  let pendingHits  = 0;
 
   function setStatus(state, text) {
     statusDot.className = 'status-dot' + (state ? ' ' + state : '');
@@ -229,7 +226,16 @@
   function handleCode(code, format) {
     if (cooldown && code === lastFound) return;
 
-    if (code.length === TARGET_LENGTH) {
+    if (ACCEPT_RE.test(code)) {
+      // 連續讀到同一個值 CONFIRM_COUNT 次才採信，避免單幀偽讀
+      if (code === pendingCode) {
+        pendingHits++;
+      } else {
+        pendingCode = code;
+        pendingHits = 1;
+      }
+      if (pendingHits < CONFIRM_COUNT) return;
+
       if (code !== lastFound) {
         lastFound = code;
         showResult(code, format);
@@ -238,11 +244,18 @@
         cooldown = true;
         setTimeout(() => { cooldown = false; }, 2500);
       }
-    } else {
+      return;
+    }
+
+    // 不符合 10 碼大寫英數：重置 pending，並有條件地加入略過清單
+    pendingCode = '';
+    pendingHits = 0;
+    if (REJECT_VISIBLE_RE.test(code)) {
       addRejected(code);
       setStatus('rejected', `略過：「${code}」共 ${code.length} 碼`);
       setTimeout(() => { if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…'); }, 1200);
     }
+    // 含特殊字元/亂碼：靜默丟棄
   }
 
   async function startScanner() {
@@ -282,7 +295,7 @@
 
     running = true;
     btnStart.style.display = 'none';
-    btnStop.style.display  = '';
+    btnStop.style.display  = 'block';
     setStatus('scanning', '掃描中，將鏡頭對準條碼…');
   }
 
@@ -306,6 +319,8 @@
     rejectedSet.clear();
     lastFound = '';
     cooldown = false;
+    pendingCode = '';
+    pendingHits = 0;
     if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…');
   }
 
