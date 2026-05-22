@@ -177,7 +177,7 @@
 </head>
 <body>
 
-<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v15</span></h1>
+<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v16</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -225,7 +225,7 @@
 
 <div class="link-row">
   <a class="link-btn" href="https://b2b.skinsurance.com.tw/SKERP/ISNEControl/FrameControl.aspx?_LP=https%3A%2F%2Fb2b.skinsurance.com.tw%2FSKERP%2FB2BWeb%2FB2B%2FlogonB2B.aspx%3FReturnUrl%3D%252fSKERP%252f" target="_blank" rel="noopener">開啟新光 B2B</a>
-  <a class="link-btn link-btn-app" href="form://">開啟行銷與表單</a>
+  <a class="link-btn link-btn-app" id="btn-form-app" href="form://">開啟行銷與表單</a>
 </div>
 
 <script type="module">
@@ -250,6 +250,15 @@
   const historyItems   = document.getElementById('history-items');
   const historyCount   = document.getElementById('history-count');
   const btnClearHistory = document.getElementById('btn-clear-history');
+  const btnFormApp      = document.getElementById('btn-form-app');
+
+  // 把最新序號接到「開啟行銷與表單」按鈕的 URL,推測 form:// 接受 ?serial= 參數
+  // (若 App 不吃此參數會自動忽略,跟原本只開 App 行為一致,無副作用)
+  function updateFormLink(serial) {
+    btnFormApp.href = serial
+      ? `form://?serial=${encodeURIComponent(serial)}`
+      : 'form://';
+  }
   const copyHint    = document.getElementById('copy-hint');
   const btnStart    = document.getElementById('btn-start');
   const btnStop     = document.getElementById('btn-stop');
@@ -354,6 +363,8 @@
       row.appendChild(codeSpan);
       row.appendChild(timeSpan);
       row.addEventListener('click', () => {
+        // 點歷史也更新 Form App 連結,方便回頭把某筆序號送過去
+        updateFormLink(item.code);
         if (!navigator.clipboard || !navigator.clipboard.writeText) return;
         navigator.clipboard.writeText(item.code).then(() => {
           row.classList.add('flash');
@@ -383,6 +394,7 @@
       lastFound = code;
       showResult(code);
       addHistory(code);
+      updateFormLink(code);
       if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
       // 找到即停止相機,節省電力 & 避免重複觸發
       stopScanner();
@@ -494,6 +506,7 @@
     rejectedList.hidden = true;
     rejectedList.classList.remove('open');
     rejectedCount.textContent = '(0)';
+    updateFormLink(null);
     lastFound = '';
     cooldown = false;
     pendingCode = '';
