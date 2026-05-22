@@ -177,7 +177,7 @@
 </head>
 <body>
 
-<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v16</span></h1>
+<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v17</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -252,12 +252,11 @@
   const btnClearHistory = document.getElementById('btn-clear-history');
   const btnFormApp      = document.getElementById('btn-form-app');
 
-  // 把最新序號接到「開啟行銷與表單」按鈕的 URL,推測 form:// 接受 ?serial= 參數
-  // (若 App 不吃此參數會自動忽略,跟原本只開 App 行為一致,無副作用)
+  // v16 嘗試過 form://?serial=... 但 App 不吃參數,維持純 form://
+  // 改在點擊瞬間(真.user gesture)重新複製到剪貼簿,確保進 App 後一定能貼上
+  let currentSerial = '';
   function updateFormLink(serial) {
-    btnFormApp.href = serial
-      ? `form://?serial=${encodeURIComponent(serial)}`
-      : 'form://';
+    currentSerial = serial || '';
   }
   const copyHint    = document.getElementById('copy-hint');
   const btnStart    = document.getElementById('btn-start');
@@ -521,6 +520,14 @@
     if (confirm('確定要清空全部掃描歷史?')) clearHistory();
   });
   rejectedHeader.addEventListener('click', () => rejectedList.classList.toggle('open'));
+
+  // 點「開啟行銷與表單」當下再複製一次序號 —— 此時是真的 user gesture,
+  // iOS Safari 一定允許 clipboard.writeText。進 App 後長按欄位即可貼上。
+  btnFormApp.addEventListener('click', () => {
+    if (currentSerial && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(currentSerial).catch(() => {});
+    }
+  });
 
   // 開頁就 render 一次歷史(從 localStorage 拉)
   renderHistory();
