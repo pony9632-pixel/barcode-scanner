@@ -195,9 +195,10 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 82%; height: 120px;
+      width: 90%; height: 170px;
       border-radius: 4px;
-      box-shadow: 0 0 0 9999px rgba(3,16,31,0.55);
+      /* 遮罩變淡:從 0.55 降到 0.18,讓使用者意識到框外也能掃 */
+      box-shadow: 0 0 0 9999px rgba(3,16,31,0.18);
     }
 
     .crosshair-h, .crosshair-v {
@@ -216,11 +217,11 @@
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 16px; height: 16px;
-      border: 1px solid var(--cyan);
+      width: 8px; height: 8px;
+      border: 1px solid rgba(0,196,214,0.6);
       border-radius: 50%;
-      box-shadow: 0 0 8px rgba(0,196,214,0.6);
     }
+    .crosshair-h, .crosshair-v { background: rgba(127,178,240,0.25); }
 
     .scan-line {
       position: absolute;
@@ -643,7 +644,7 @@
         <div class="subtitle">BARCODE_SCANNER / 10-CODE</div>
       </div>
     </div>
-    <div class="session-pill"><span class="live-dot"></span>v18 BLUE</div>
+    <div class="session-pill"><span class="live-dot"></span>v19 BLUE</div>
   </div>
 
   <!-- Scanner card with meta -->
@@ -731,7 +732,7 @@
     <div id="rejected-items"></div>
   </div>
 
-  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v18_BLUE_TECH</div>
+  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v19_BLUE_TECH</div>
 </div>
 
 <script type="module">
