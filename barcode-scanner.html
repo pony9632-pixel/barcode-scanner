@@ -133,7 +133,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v8</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v9</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -285,10 +285,10 @@
     // 含特殊字元/亂碼：靜默丟棄
   }
 
-  async function startScanner() {
+  async function startScanner(silent = false) {
     if (running) return;
     btnStart.disabled = true;
-    setStatus('scanning', '正在請求相機權限…');
+    if (!silent) setStatus('scanning', '正在請求相機權限…');
 
     codeReader = new BrowserMultiFormatReader(hints, {
       delayBetweenScanAttempts: 50,
@@ -332,6 +332,7 @@
     } catch (e) {
       codeReader = null;
       btnStart.disabled = false;
+      if (silent) return;  // 自動啟動失敗:不顯示錯誤,讓使用者手動點按鈕
       if (e && e.name === 'NotAllowedError') {
         setStatus('', '相機權限被拒絕，請到 Safari 設定中允許相機');
       } else {
@@ -370,9 +371,14 @@
     if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…');
   }
 
-  btnStart.addEventListener('click', startScanner);
+  btnStart.addEventListener('click', () => startScanner(false));
   btnStop.addEventListener('click', stopScanner);
   btnClear.addEventListener('click', clearAll);
+
+  // 嘗試載入後自動啟動相機。
+  // iOS Safari 因安全規範禁止無使用者手勢的 getUserMedia,會靜默失敗,
+  // 使用者改按「開始掃描」即可;桌面 Chrome / Android Chrome 通常會直接開啟。
+  window.addEventListener('load', () => { startScanner(true); });
 </script>
 </body>
 </html>
