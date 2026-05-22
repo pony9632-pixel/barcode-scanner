@@ -237,10 +237,25 @@
     setStatus('scanning', '正在請求相機權限…');
 
     try {
-      scanner = new Html5Qrcode('reader-view');
+      // 明確指定所有線性條碼格式（預設只掃 QR Code）
+      const formats = [
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.CODE_93,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.ITF,
+        Html5QrcodeSupportedFormats.CODABAR,
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.DATA_MATRIX,
+        Html5QrcodeSupportedFormats.PDF_417,
+      ];
+      scanner = new Html5Qrcode('reader-view', { formatsToSupport: formats });
 
       await scanner.start(
-        { facingMode: 'environment' },
+        { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
         { fps: 15, aspectRatio: 16 / 9 },
         (text, result) => {
           const code   = text.trim();
