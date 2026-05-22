@@ -644,7 +644,7 @@
         <div class="subtitle">BARCODE_SCANNER / 10-CODE</div>
       </div>
     </div>
-    <div class="session-pill"><span class="live-dot"></span>v20 BLUE</div>
+    <div class="session-pill"><span class="live-dot"></span>v21 BLUE</div>
   </div>
 
   <!-- Scanner card with meta -->
@@ -732,7 +732,7 @@
     <div id="rejected-items"></div>
   </div>
 
-  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v20_BLUE_TECH</div>
+  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v21_BLUE_TECH</div>
 </div>
 
 <script type="module">
@@ -783,6 +783,23 @@
   const CONFIRM_COUNT = 1;
   let pendingCode = '';
   let pendingHits = 0;
+
+  // 閒置超時:啟動後 45 秒沒讀到任何疑似條碼 → 自動關閉相機節電
+  // 有 reject 事件代表使用者正在對著條碼瞄,延長計時
+  const IDLE_TIMEOUT_MS = 45000;
+  let idleTimer = null;
+  function armIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (running) {
+        stopScanner();
+        setStatus('', '已自動停止(45 秒閒置),按下開始繼續');
+      }
+    }, IDLE_TIMEOUT_MS);
+  }
+  function clearIdleTimer() {
+    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+  }
 
   function setStatus(state, text) {
     statusDot.className = 'status-dot' + (state ? ' ' + state : '');
@@ -913,6 +930,7 @@
     pendingHits = 0;
     if (REJECT_VISIBLE_RE.test(raw)) {
       addRejected(raw);
+      armIdleTimer(); // 有疑似讀取,代表使用者在用,延長閒置計時器
       setStatus('rejected', `略過：「${raw}」共 ${raw.length} 碼`);
       setTimeout(() => { if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…'); }, 1200);
     }
@@ -924,15 +942,15 @@
     if (!silent) setStatus('scanning', '正在請求相機權限…');
 
     codeReader = new BrowserMultiFormatReader(hints, {
-      delayBetweenScanAttempts: 50,
-      delayBetweenScanSuccess: 400
+      delayBetweenScanAttempts: 200,  // v21: 50→200ms,CPU 用量降 75%,使用者無感
+      delayBetweenScanSuccess: 800
     });
 
     const videoConstraints = {
       facingMode: { ideal: 'environment' },
       width:  { ideal: 1920 },
       height: { ideal: 1080 },
-      frameRate: { ideal: 30 },
+      frameRate: { ideal: 15 },        // v21: 30→15fps,相機 ISP 半功率,大幅省電
       focusMode: 'continuous'
     };
 
@@ -968,10 +986,12 @@
     btnStart.style.display = 'none';
     btnStop.style.display  = 'inline-flex';
     setStatus('scanning', '掃描中，將鏡頭對準條碼…');
+    armIdleTimer();
   }
 
   async function stopScanner() {
     running = false;
+    clearIdleTimer();
     // 1. 關掉 ZXing 的掃描迴圈
     if (controls) { try { controls.stop(); } catch (_) {} controls = null; }
     // 2. 明確釋放所有相機軌道(讓 iOS 的「錄影中」綠點消失)
