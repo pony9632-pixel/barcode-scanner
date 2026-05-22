@@ -18,18 +18,8 @@
       padding: 24px 16px;
     }
 
-    h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-      color: #e2e8f0;
-    }
-
-    .subtitle {
-      font-size: 0.85rem;
-      color: #94a3b8;
-      margin-bottom: 20px;
-    }
+    h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; color: #e2e8f0; }
+    .subtitle { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; }
 
     .scanner-wrap {
       position: relative;
@@ -37,46 +27,51 @@
       max-width: 480px;
       border-radius: 16px;
       overflow: hidden;
-      background: #1e293b;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    }
-
-    #video {
-      width: 100%;
-      display: block;
       background: #000;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      min-height: 220px;
     }
 
-    /* 掃描框 */
+    /* html5-qrcode 會在這個 div 裡注入 video，需要覆蓋它的樣式 */
+    #reader-view {
+      width: 100%;
+    }
+    #reader-view video {
+      width: 100% !important;
+      height: auto !important;
+      display: block;
+      border-radius: 0 !important;
+    }
+    /* 隱藏 html5-qrcode 原生 UI */
+    #reader-view img,
+    #reader-view button,
+    #reader-view select,
+    #reader-view span,
+    #reader-view div > div[style] {
+      display: none !important;
+    }
+
+    /* 掃描框疊層 */
     .scan-overlay {
       position: absolute;
       inset: 0;
       pointer-events: none;
     }
-
     .scan-box {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 75%;
-      height: 110px;
+      width: 78%; height: 110px;
       border: 2px solid rgba(99, 230, 190, 0.7);
       border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
     }
-
-    /* 掃描線動畫 */
     .scan-line {
       position: absolute;
-      left: 0;
-      right: 0;
-      height: 2px;
+      left: 0; right: 0; height: 2px;
       background: linear-gradient(90deg, transparent, #63e6be, transparent);
       animation: scanMove 1.8s ease-in-out infinite;
-      top: 0;
     }
-
     @keyframes scanMove {
       0%   { top: 4px; opacity: 1; }
       48%  { top: calc(100% - 4px); opacity: 1; }
@@ -85,15 +80,7 @@
       54%  { opacity: 1; }
       100% { top: calc(100% - 4px); opacity: 1; }
     }
-
-    /* 四角裝飾 */
-    .corner {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border-color: #63e6be;
-      border-style: solid;
-    }
+    .corner { position: absolute; width: 16px; height: 16px; border-color: #63e6be; border-style: solid; }
     .corner.tl { top: -1px; left: -1px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
     .corner.tr { top: -1px; right: -1px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
     .corner.bl { bottom: -1px; left: -1px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
@@ -101,139 +88,60 @@
 
     /* 狀態列 */
     .status-bar {
-      width: 100%;
-      max-width: 480px;
-      margin-top: 16px;
-      padding: 12px 16px;
-      background: #1e293b;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      width: 100%; max-width: 480px;
+      margin-top: 16px; padding: 12px 16px;
+      background: #1e293b; border-radius: 12px;
+      display: flex; align-items: center; gap: 10px;
       font-size: 0.9rem;
     }
-
     .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #475569;
-      flex-shrink: 0;
-      transition: background 0.3s;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #475569; flex-shrink: 0; transition: background 0.3s;
     }
     .status-dot.scanning { background: #63e6be; animation: pulse 1.2s infinite; }
     .status-dot.found    { background: #4ade80; }
     .status-dot.rejected { background: #f87171; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     #status-text { color: #cbd5e1; }
 
-    /* 結果卡片 */
+    /* 結果卡 */
     .result-card {
-      width: 100%;
-      max-width: 480px;
-      margin-top: 16px;
-      padding: 18px 20px;
-      background: #1e293b;
-      border-radius: 16px;
+      width: 100%; max-width: 480px;
+      margin-top: 16px; padding: 18px 20px;
+      background: #1e293b; border-radius: 16px;
       border-left: 4px solid #475569;
       transition: border-color 0.3s;
+      cursor: default;
     }
-
-    .result-card.success { border-color: #4ade80; }
+    .result-card.success  { border-color: #4ade80; cursor: pointer; }
     .result-card.rejected { border-color: #f87171; }
+    .result-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
+    #result-value { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.12em; color: #f1f5f9; word-break: break-all; min-height: 2.2rem; }
+    #result-meta  { margin-top: 6px; font-size: 0.8rem; color: #64748b; }
 
-    .result-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #64748b;
-      margin-bottom: 6px;
-    }
-
-    #result-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      color: #f1f5f9;
-      word-break: break-all;
-      min-height: 2.2rem;
-    }
-
-    #result-meta {
-      margin-top: 6px;
-      font-size: 0.8rem;
-      color: #64748b;
-    }
-
-    /* 拒絕紀錄 */
-    .rejected-list {
-      width: 100%;
-      max-width: 480px;
-      margin-top: 16px;
-    }
-
-    .rejected-header {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #475569;
-      margin-bottom: 8px;
-    }
-
-    #rejected-items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
+    /* 略過清單 */
+    .rejected-list { width: 100%; max-width: 480px; margin-top: 16px; }
+    .rejected-header { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; margin-bottom: 8px; }
+    #rejected-items { display: flex; flex-wrap: wrap; gap: 6px; }
     .rejected-tag {
-      padding: 4px 10px;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      color: #94a3b8;
+      padding: 4px 10px; background: #1e293b;
+      border: 1px solid #334155; border-radius: 20px;
+      font-size: 0.78rem; color: #94a3b8;
     }
 
     /* 按鈕 */
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-      width: 100%;
-      max-width: 480px;
-    }
-
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; width: 100%; max-width: 480px; }
     button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s;
+      flex: 1; padding: 12px; border: none; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
     }
     button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #btn-start { background: #63e6be; color: #0f172a; }
+    #btn-stop  { background: #f87171; color: #0f172a; display: none; }
+    #btn-clear { background: #334155; color: #e2e8f0; }
 
-    #btn-start  { background: #63e6be; color: #0f172a; }
-    #btn-clear  { background: #334155; color: #e2e8f0; }
-
-    /* 複製提示 */
-    #copy-hint {
-      font-size: 0.78rem;
-      color: #4ade80;
-      text-align: center;
-      height: 1em;
-      margin-top: 8px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
+    #copy-hint { font-size: 0.78rem; color: #4ade80; text-align: center; height: 1em; margin-top: 8px; opacity: 0; transition: opacity 0.3s; }
   </style>
 </head>
 <body>
@@ -242,7 +150,7 @@
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
-  <video id="video" autoplay muted playsinline></video>
+  <div id="reader-view"></div>
   <div class="scan-overlay">
     <div class="scan-box">
       <div class="scan-line"></div>
@@ -264,7 +172,6 @@
   <div id="result-value">—</div>
   <div id="result-meta"></div>
 </div>
-
 <div id="copy-hint">已複製到剪貼簿！</div>
 
 <div class="rejected-list">
@@ -274,13 +181,12 @@
 
 <div class="btn-row">
   <button id="btn-start">開始掃描</button>
+  <button id="btn-stop">停止掃描</button>
   <button id="btn-clear">清除結果</button>
 </div>
 
-<!-- ZXing 條碼解碼庫 -->
-<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
-  const video       = document.getElementById('video');
   const statusDot   = document.getElementById('status-dot');
   const statusText  = document.getElementById('status-text');
   const resultCard  = document.getElementById('result-card');
@@ -289,11 +195,11 @@
   const rejectedDiv = document.getElementById('rejected-items');
   const copyHint    = document.getElementById('copy-hint');
   const btnStart    = document.getElementById('btn-start');
+  const btnStop     = document.getElementById('btn-stop');
   const btnClear    = document.getElementById('btn-clear');
 
   const TARGET_LENGTH = 10;
-
-  let reader = null;
+  let scanner = null;
   let running = false;
   let lastFound = '';
   let cooldown = false;
@@ -304,12 +210,10 @@
     statusText.textContent = text;
   }
 
-  function showResult(code, type) {
+  function showResult(code, format) {
     resultValue.textContent = code;
-    resultMeta.textContent  = `格式：${type}　長度：${code.length} 碼`;
+    resultMeta.textContent  = `格式：${format}　長度：${code.length} 碼`;
     resultCard.className = 'result-card success';
-
-    // 點擊複製
     resultCard.onclick = () => {
       navigator.clipboard.writeText(code).then(() => {
         copyHint.style.opacity = '1';
@@ -329,79 +233,63 @@
 
   async function startScanner() {
     if (running) return;
-    running = true;
-    btnStart.textContent = '掃描中…';
     btnStart.disabled = true;
     setStatus('scanning', '正在請求相機權限…');
 
-    // 步驟1：先用原生 API 明確觸發權限詢問
-    let testStream;
     try {
-      testStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } }
-      });
-      testStream.getTracks().forEach(t => t.stop()); // 權限拿到後先停掉
-    } catch (e) {
-      running = false;
-      btnStart.textContent = '開始掃描';
-      btnStart.disabled = false;
-      if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
-        setStatus('', '相機權限被拒絕，請到瀏覽器設定中允許相機後再試');
-      } else if (e.name === 'NotFoundError') {
-        setStatus('', '找不到相機裝置');
-      } else {
-        setStatus('', `無法開啟相機：${e.message}`);
-      }
-      return;
-    }
+      scanner = new Html5Qrcode('reader-view');
 
-    // 步驟2：確認 ZXing 函式庫有載入
-    if (typeof ZXingBrowser === 'undefined') {
-      running = false;
-      btnStart.textContent = '開始掃描';
-      btnStart.disabled = false;
-      setStatus('', '條碼函式庫載入失敗，請重新整理頁面');
-      return;
-    }
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 15, aspectRatio: 16 / 9 },
+        (text, result) => {
+          const code   = text.trim();
+          const format = result?.result?.format?.formatName ?? '';
 
-    // 步驟3：啟動 ZXing 掃描（權限已取得，listVideoInputDevices 現在能拿到 label）
-    try {
-      reader = new ZXingBrowser.BrowserMultiFormatReader();
-      const devices = await ZXingBrowser.BrowserMultiFormatReader.listVideoInputDevices();
-      const backCam = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[devices.length - 1];
-      const deviceId = backCam ? backCam.deviceId : undefined;
+          if (cooldown && code === lastFound) return;
 
-      reader.decodeFromVideoDevice(deviceId, video, (result, err) => {
-        if (!result) return;
-
-        const code = result.getText().trim();
-        const type = result.getBarcodeFormat();
-
-        if (cooldown && code === lastFound) return;
-
-        if (code.length === TARGET_LENGTH) {
-          if (code !== lastFound) {
-            lastFound = code;
-            showResult(code, type);
-            setStatus('found', `找到 10 碼條碼！點擊結果可複製`);
-            if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
-            cooldown = true;
-            setTimeout(() => { cooldown = false; }, 2000);
+          if (code.length === TARGET_LENGTH) {
+            if (code !== lastFound) {
+              lastFound = code;
+              showResult(code, format);
+              setStatus('found', '找到 10 碼條碼！點擊結果可複製');
+              if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+              cooldown = true;
+              setTimeout(() => { cooldown = false; }, 2000);
+            }
+          } else {
+            addRejected(code);
+            setStatus('rejected', `略過：「${code}」共 ${code.length} 碼，需要 10 碼`);
+            setTimeout(() => setStatus('scanning', '掃描中，將鏡頭對準條碼…'), 1200);
           }
-        } else {
-          addRejected(code);
-          setStatus('rejected', `略過：「${code}」共 ${code.length} 碼，需要 10 碼`);
-          setTimeout(() => setStatus('scanning', '掃描中，將鏡頭對準條碼…'), 1200);
-        }
-      });
+        },
+        () => {} // 掃不到時靜默忽略
+      );
 
+      running = true;
+      btnStart.style.display = 'none';
+      btnStop.style.display  = '';
       setStatus('scanning', '掃描中，將鏡頭對準條碼…');
+
     } catch (e) {
-      running = false;
-      btnStart.textContent = '開始掃描';
       btnStart.disabled = false;
-      setStatus('', `掃描器啟動失敗：${e.message}`);
+      if (e && (e.toString().includes('NotAllowed') || e.toString().includes('Permission'))) {
+        setStatus('', '相機權限被拒絕，請到瀏覽器設定中允許相機');
+      } else {
+        setStatus('', `無法開啟相機：${e}`);
+      }
     }
+  }
+
+  async function stopScanner() {
+    if (!running || !scanner) return;
+    try { await scanner.stop(); } catch (_) {}
+    scanner = null;
+    running = false;
+    btnStop.style.display  = 'none';
+    btnStart.style.display = '';
+    btnStart.disabled = false;
+    setStatus('', '已停止掃描');
   }
 
   function clearAll() {
@@ -413,12 +301,11 @@
     rejectedSet.clear();
     lastFound = '';
     cooldown = false;
-    if (running) {
-      setStatus('scanning', '掃描中，將鏡頭對準條碼…');
-    }
+    if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…');
   }
 
   btnStart.addEventListener('click', startScanner);
+  btnStop.addEventListener('click', stopScanner);
   btnClear.addEventListener('click', clearAll);
 </script>
 </body>
