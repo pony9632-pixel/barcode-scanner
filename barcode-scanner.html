@@ -115,7 +115,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v2</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v3</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -188,10 +188,15 @@
   hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128]);
   hints.set(DecodeHintType.TRY_HARDER, true);
 
-  // 嚴格接受條件：10 碼大寫英數
-  const ACCEPT_RE = /^[A-Z0-9]{10}$/;
+  // Apple 盒裝 (S) 序號條碼會在前面多一個 S(GS1-128 AI)。
+  // 因此接受兩種:純 10 碼,或 S + 10 碼(剝掉 S)。
+  function normalizeSerial(raw) {
+    if (/^[A-Z0-9]{10}$/.test(raw)) return { value: raw, stripped: false };
+    if (/^S[A-Z0-9]{10}$/.test(raw)) return { value: raw.slice(1), stripped: true };
+    return null;
+  }
   // 略過清單只顯示「接近正確」的字串，亂碼直接丟棄
-  const REJECT_VISIBLE_RE = /^[A-Za-z0-9]{6,14}$/;
+  const REJECT_VISIBLE_RE = /^[A-Za-z0-9]{6,16}$/;
   // 同一個 code 連續讀到幾次才採信
   const CONFIRM_COUNT = 2;
   let pendingCode  = '';
@@ -223,10 +228,13 @@
     rejectedDiv.prepend(tag);
   }
 
-  function handleCode(code, format) {
-    if (cooldown && code === lastFound) return;
+  function handleCode(raw, format) {
+    const norm = normalizeSerial(raw);
 
-    if (ACCEPT_RE.test(code)) {
+    if (norm) {
+      const code = norm.value;
+      if (cooldown && code === lastFound) return;
+
       // 連續讀到同一個值 CONFIRM_COUNT 次才採信，避免單幀偽讀
       if (code === pendingCode) {
         pendingHits++;
@@ -238,8 +246,9 @@
 
       if (code !== lastFound) {
         lastFound = code;
-        showResult(code, format);
-        setStatus('found', '找到 10 碼條碼！點擊結果可複製');
+        const fmtLabel = norm.stripped ? `${format} (剝除 S 前綴)` : format;
+        showResult(code, fmtLabel);
+        setStatus('found', '找到 10 碼序號！點擊結果可複製');
         if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
         cooldown = true;
         setTimeout(() => { cooldown = false; }, 2500);
@@ -247,12 +256,12 @@
       return;
     }
 
-    // 不符合 10 碼大寫英數：重置 pending，並有條件地加入略過清單
+    // 不符合接受規則：重置 pending，並有條件地加入略過清單
     pendingCode = '';
     pendingHits = 0;
-    if (REJECT_VISIBLE_RE.test(code)) {
-      addRejected(code);
-      setStatus('rejected', `略過：「${code}」共 ${code.length} 碼`);
+    if (REJECT_VISIBLE_RE.test(raw)) {
+      addRejected(raw);
+      setStatus('rejected', `略過：「${raw}」共 ${raw.length} 碼`);
       setTimeout(() => { if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…'); }, 1200);
     }
     // 含特殊字元/亂碼：靜默丟棄
