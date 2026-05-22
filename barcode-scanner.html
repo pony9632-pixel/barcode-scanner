@@ -133,7 +133,7 @@
 </head>
 <body>
 
-<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v11</span></h1>
+<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v12</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -158,7 +158,7 @@
   <div class="result-label">掃描結果（10碼）</div>
   <div id="result-value">—</div>
 </div>
-<div id="copy-hint">已複製到剪貼簿！</div>
+<div id="copy-hint">已複製序號！</div>
 
 <div class="rejected-list">
   <div class="rejected-header">略過的條碼（非10碼）</div>
@@ -267,8 +267,18 @@
       if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
       // 找到即停止相機,節省電力 & 避免重複觸發
       stopScanner();
-      // stopScanner 會把狀態列改成「已停止掃描」,我們再覆蓋為成功訊息
-      setStatus('found', '找到序號！相機已關閉，點擊結果可複製');
+      // 自動複製到剪貼簿。iOS Safari 在非手勢情境可能會拒絕,失敗就退回手動模式
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          setStatus('found', `已複製序號：${code}`);
+          copyHint.style.opacity = '1';
+          setTimeout(() => copyHint.style.opacity = '0', 1800);
+        }).catch(() => {
+          setStatus('found', '找到序號！相機已關閉，點擊結果可複製');
+        });
+      } else {
+        setStatus('found', '找到序號！相機已關閉，點擊結果可複製');
+      }
       return;
     }
 
