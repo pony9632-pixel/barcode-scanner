@@ -3,68 +3,232 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>STUDIO A 條碼掃描</title>
+  <title>條碼讀取器・Blue Tech</title>
 
   <!-- PWA + iOS Web App -->
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#EEF4FC" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="STUDIO A" />
   <meta name="mobile-web-app-capable" content="yes" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #EEF4FC;
+      --bg-2: #DCE8F8;
+      --paper: #FFFFFF;
+      --ink: #061B36;
+      --ink-2: #0E2A4D;
+      --ink-soft: #4A6585;
+      --ink-faint: #8AA0BC;
+      --line: #CFDCEF;
+      --line-soft: #E2EBF7;
+      --blue: #2F7BF4;
+      --blue-deep: #1656C7;
+      --sky: #7FB2F0;
+      --sky-soft: #CFE2FA;
+      --cyan: #00C4D6;
+      --alert: #FF3D6E;
+      --accent: #FFD23C;
+      --glow: 0 0 0 1px rgba(47,123,244,0.15), 0 8px 28px rgba(47,123,244,0.12);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f172a;
-      color: #f1f5f9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      background-image:
+        linear-gradient(rgba(47,123,244,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47,123,244,0.06) 1px, transparent 1px),
+        radial-gradient(circle at 90% 0%, rgba(127,178,240,0.25) 0, transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(207,226,250,0.5) 0, transparent 40%);
+      background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%;
+      color: var(--ink);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+      padding: max(18px, env(safe-area-inset-top)) 16px max(36px, env(safe-area-inset-bottom));
+      -webkit-font-smoothing: antialiased;
     }
 
-    h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; color: #e2e8f0; }
-    .subtitle { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; }
+    .wrap { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 12px; }
 
+    /* === Header === */
+    .header {
+      background: var(--ink);
+      color: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #0E2A4D;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(47,123,244,0.18) 50%, transparent 100%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .header-left {
+      display: flex; align-items: center; gap: 12px;
+      position: relative; z-index: 1;
+    }
+    .logo-stack {
+      display: grid; place-items: center;
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 0 18px rgba(47,123,244,0.5);
+    }
+    .logo-stack svg { width: 22px; height: 22px; color: #fff; }
+    .title-block { line-height: 1.15; }
+    h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.005em;
+    }
+    .subtitle {
+      font-size: 0.66rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+    }
+    .session-pill {
+      position: relative; z-index: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: var(--sky);
+      border-radius: 6px;
+      letter-spacing: 0.08em;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .session-pill .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      animation: blink 1.6s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    /* === Scanner card === */
+    .scanner-card {
+      position: relative;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: var(--glow);
+    }
+    .scanner-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+    }
+    .scanner-meta-left { display: flex; gap: 14px; }
+    .scanner-meta strong { color: var(--blue); font-weight: 700; }
+    .scanner-meta .rec {
+      display: inline-flex; align-items: center; gap: 5px;
+      color: var(--alert);
+    }
+    .scanner-meta .rec::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--alert);
+      animation: blink 1.4s infinite;
+    }
     .scanner-wrap {
       position: relative;
       width: 100%;
-      max-width: 480px;
       aspect-ratio: 4 / 3;
-      max-height: 50vh;
-      border-radius: 16px;
+      max-height: 46vh;
+      border-radius: 8px;
       overflow: hidden;
-      background: #000;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      background: #03101F;
     }
-
     #video {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       display: block;
-      background: #000;
+      background: #03101F;
       object-fit: cover;
     }
-
     .scan-overlay { position: absolute; inset: 0; pointer-events: none; }
+
+    .hud-ticks {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(90deg, rgba(127,178,240,0.4) 1px, transparent 1px) 0 0 / 40px 100%,
+        linear-gradient(0deg, rgba(127,178,240,0.4) 1px, transparent 1px) 0 0 / 100% 40px;
+      mask:
+        linear-gradient(90deg, #000 0, #000 10px, transparent 10px, transparent calc(100% - 10px), #000 calc(100% - 10px)) top/100% 6px no-repeat,
+        linear-gradient(90deg, #000 0, #000 10px, transparent 10px, transparent calc(100% - 10px), #000 calc(100% - 10px)) bottom/100% 6px no-repeat,
+        linear-gradient(0deg, #000 0, #000 10px, transparent 10px, transparent calc(100% - 10px), #000 calc(100% - 10px)) left/6px 100% no-repeat,
+        linear-gradient(0deg, #000 0, #000 10px, transparent 10px, transparent calc(100% - 10px), #000 calc(100% - 10px)) right/6px 100% no-repeat;
+      opacity: 0.7;
+    }
+
     .scan-box {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 85%; height: 100px;
-      border: 2px solid rgba(99, 230, 190, 0.8);
-      border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+      width: 82%; height: 120px;
+      border-radius: 4px;
+      box-shadow: 0 0 0 9999px rgba(3,16,31,0.55);
     }
+
+    .crosshair-h, .crosshair-v {
+      position: absolute;
+      background: rgba(127,178,240,0.5);
+    }
+    .crosshair-h {
+      top: 50%; left: 0; right: 0; height: 1px;
+      transform: translateY(-50%);
+    }
+    .crosshair-v {
+      left: 50%; top: 0; bottom: 0; width: 1px;
+      transform: translateX(-50%);
+    }
+    .crosshair-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px; height: 16px;
+      border: 1px solid var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(0,196,214,0.6);
+    }
+
     .scan-line {
       position: absolute;
-      left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, #63e6be, transparent);
-      animation: scanMove 1.8s ease-in-out infinite;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan) 20%, var(--blue) 50%, var(--cyan) 80%, transparent);
+      box-shadow: 0 0 12px var(--cyan), 0 0 26px rgba(47,123,244,0.6);
+      animation: scanMove 1.8s cubic-bezier(.65,0,.35,1) infinite;
     }
     @keyframes scanMove {
       0%   { top: 4px; opacity: 1; }
@@ -74,231 +238,572 @@
       54%  { opacity: 1; }
       100% { top: calc(100% - 4px); opacity: 1; }
     }
-    .corner { position: absolute; width: 16px; height: 16px; border-color: #63e6be; border-style: solid; }
-    .corner.tl { top:-1px; left:-1px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-    .corner.tr { top:-1px; right:-1px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-    .corner.bl { bottom:-1px; left:-1px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-    .corner.br { bottom:-1px; right:-1px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
 
-    .status-bar {
-      width: 100%; max-width: 480px;
-      margin-top: 16px; padding: 12px 16px;
-      background: #1e293b; border-radius: 12px;
-      display: flex; align-items: center; gap: 10px;
-      font-size: 0.88rem;
-    }
-    .status-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: #475569; flex-shrink: 0; transition: background 0.3s;
-    }
-    .status-dot.scanning { background: #63e6be; animation: pulse 1.2s infinite; }
-    .status-dot.found    { background: #4ade80; }
-    .status-dot.rejected { background: #f87171; }
-    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
-    #status-text { color: #cbd5e1; }
+    .corner { position: absolute; width: 22px; height: 22px; border-color: var(--cyan); border-style: solid; }
+    .corner.tl { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+    .corner.tr { top:-1px; right:-1px; border-width:2px 2px 0 0; }
+    .corner.bl { bottom:-1px; left:-1px; border-width:0 0 2px 2px; }
+    .corner.br { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
 
+    .target-label {
+      position: absolute;
+      top: -22px; left: 50%;
+      transform: translateX(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--cyan);
+      letter-spacing: 0.14em;
+      white-space: nowrap;
+    }
+
+    .hud-corner-label {
+      position: absolute;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: rgba(127,178,240,0.85);
+      letter-spacing: 0.1em;
+      pointer-events: none;
+    }
+    .hud-corner-label.tl { top: 8px; left: 10px; }
+    .hud-corner-label.tr { top: 8px; right: 10px; }
+    .hud-corner-label.bl { bottom: 8px; left: 10px; }
+    .hud-corner-label.br { bottom: 8px; right: 10px; }
+
+    /* === Status line === */
+    .status-line {
+      padding: 12px 14px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--ink-2);
+      display: flex; gap: 10px;
+      align-items: center;
+      box-shadow: 0 1px 0 rgba(11,31,54,0.04);
+    }
+    .status-line .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--ink-faint);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-line .status-dot.scanning {
+      background: var(--blue);
+      animation: pulseRing 1.4s infinite;
+    }
+    .status-line .status-dot.found {
+      background: #16C26C;
+      box-shadow: 0 0 0 4px rgba(22,194,108,0.22);
+    }
+    .status-line .status-dot.rejected { background: var(--alert); }
+    @keyframes pulseRing {
+      0%   { box-shadow: 0 0 0 0 rgba(47,123,244,0.55); }
+      70%  { box-shadow: 0 0 0 8px rgba(47,123,244,0); }
+      100% { box-shadow: 0 0 0 0 rgba(47,123,244,0); }
+    }
+
+    /* === Result card === */
     .result-card {
-      width: 100%; max-width: 480px;
-      margin-top: 16px; padding: 18px 20px;
-      background: #1e293b; border-radius: 16px;
-      border-left: 4px solid #475569;
-      transition: border-color 0.3s;
+      position: relative;
+      padding: 18px 20px 16px;
+      background: var(--ink);
+      color: #fff;
+      border: 1px solid var(--ink-2);
+      border-radius: 14px;
+      box-shadow: var(--glow);
+      transition: box-shadow 0.25s ease;
+      overflow: hidden;
     }
-    .result-card.success  { border-color: #4ade80; cursor: pointer; }
-    .result-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
-    #result-value { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.12em; color: #f1f5f9; word-break: break-all; min-height: 2.2rem; }
-
-    .history { width: 100%; max-width: 480px; margin-top: 16px; }
-    .history[hidden] { display: none; }
-    .history-header {
+    .result-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(127,178,240,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(127,178,240,0.06) 1px, transparent 1px);
+      background-size: 16px 16px, 16px 16px;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .result-card.success {
+      cursor: pointer;
+      box-shadow:
+        0 0 0 1px rgba(0,196,214,0.5),
+        0 0 30px rgba(0,196,214,0.35),
+        0 10px 36px rgba(47,123,244,0.25);
+    }
+    .result-head {
       display: flex; align-items: center; justify-content: space-between;
-      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
-      color: #475569; margin-bottom: 8px;
+      margin-bottom: 8px;
+      position: relative;
     }
-    .history-clear {
-      background: none; border: none; color: #64748b; font-size: 0.75rem;
-      cursor: pointer; padding: 2px 8px; border-radius: 6px;
+    .result-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.16em;
+      color: var(--sky);
+      font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px;
     }
-    .history-clear:hover { color: #cbd5e1; background: #1e293b; }
-    .history-items { display: flex; flex-direction: column; gap: 6px; }
-    .history-item {
-      padding: 10px 14px; background: #1e293b; border-radius: 10px;
-      display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer; transition: background 0.15s;
+    .result-label::before {
+      content: '>';
+      color: var(--cyan);
+      font-weight: 700;
     }
-    .history-item:hover, .history-item:active { background: #243044; }
-    .history-item.flash { background: #14532d; transition: background 0.3s; }
-    .history-code {
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      font-weight: 600; letter-spacing: 0.08em; color: #f1f5f9;
+    .copy-badge {
+      display: none;
+      align-items: center; gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: var(--ink);
+      padding: 4px 9px;
+      background: var(--cyan);
+      border-radius: 4px;
+      letter-spacing: 0.06em;
     }
-    .history-time { font-size: 0.78rem; color: #64748b; }
+    .result-card.success .copy-badge { display: inline-flex; }
+    .copy-badge svg { width: 10px; height: 10px; }
 
-    .rejected-list { width: 100%; max-width: 480px; margin-top: 16px; }
-    .rejected-list[hidden] { display: none; }
-    .rejected-header {
-      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
-      color: #475569; margin-bottom: 8px;
-      cursor: pointer; user-select: none;
-      display: flex; align-items: center; gap: 6px;
+    #result-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #fff;
+      word-break: break-all;
+      min-height: 2.2rem;
+      line-height: 1.1;
+      position: relative;
+      text-shadow: 0 0 18px rgba(0,196,214,0.35);
     }
-    .rejected-header::before { content: '▸'; transition: transform 0.2s; font-size: 0.9rem; }
-    .rejected-list.open .rejected-header::before { transform: rotate(90deg); }
-    #rejected-items { display: none; flex-wrap: wrap; gap: 6px; }
-    .rejected-list.open #rejected-items { display: flex; }
-    .rejected-tag { padding: 4px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 20px; font-size: 0.78rem; color: #94a3b8; }
+    .result-card:not(.success) #result-value {
+      color: var(--ink-soft);
+      text-shadow: none;
+    }
+    .result-card:not(.success) #result-value::after {
+      content: '_';
+      color: var(--blue);
+      animation: blink 1s infinite;
+      margin-left: 2px;
+    }
 
-    .btn-row { display: flex; gap: 10px; margin-top: 16px; width: 100%; max-width: 480px; }
-    button { flex:1; padding:12px; border:none; border-radius:10px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:opacity 0.2s; }
-    button:hover { opacity: 0.85; }
+    .digit-meter {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+      position: relative;
+    }
+    .digit-meter .dot {
+      height: 3px;
+      border-radius: 1px;
+      background: rgba(127,178,240,0.18);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .result-card.success .digit-meter .dot {
+      background: var(--cyan);
+      box-shadow: 0 0 6px rgba(0,196,214,0.6);
+    }
+
+    #copy-hint {
+      font-size: 0.76rem;
+      color: #079D3D;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      text-align: center;
+      height: 1em;
+      opacity: 0;
+      transition: opacity 0.3s;
+      letter-spacing: 0.06em;
+    }
+
+    /* === Buttons === */
+    .btn-row { display: flex; gap: 8px; }
+    button {
+      flex: 1;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--paper);
+      color: var(--ink);
+      letter-spacing: 0.01em;
+    }
+    button:active:not(:disabled) { transform: translateY(1px); }
     button:disabled { opacity: 0.45; cursor: not-allowed; }
-    #btn-start { background: #63e6be; color: #0f172a; }
-    #btn-stop  { background: #f87171; color: #0f172a; }
-    #btn-clear { background: #334155; color: #e2e8f0; }
+    button .ico {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+    #btn-start {
+      background: linear-gradient(180deg, var(--blue) 0%, var(--blue-deep) 100%);
+      color: #fff;
+      border-color: var(--blue-deep);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.24), 0 4px 14px rgba(47,123,244,0.32);
+    }
+    #btn-start:hover:not(:disabled) {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.24), 0 6px 20px rgba(47,123,244,0.42);
+    }
+    #btn-stop {
+      background: var(--alert);
+      color: #fff;
+      border-color: #C8294F;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 14px rgba(255,61,110,0.3);
+    }
+    #btn-clear {
+      flex: 0 0 auto;
+      padding-left: 16px; padding-right: 16px;
+      color: var(--ink-soft);
+    }
+    #btn-clear:hover { background: var(--bg-2); color: var(--ink); }
 
-    .link-row { display: flex; gap: 10px; margin-top: 10px; width: 100%; max-width: 480px; }
+    /* === Links === */
+    .link-row { display: flex; gap: 8px; }
     .link-btn {
       flex: 1;
-      padding: 12px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
       border-radius: 10px;
+      font-family: 'Inter', sans-serif;
       font-size: 0.9rem;
       font-weight: 600;
       text-align: center;
       text-decoration: none;
-      background: #38bdf8;
-      color: #0f172a;
-      transition: opacity 0.2s;
+      transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--paper);
+      color: var(--ink);
     }
-    .link-btn:hover { opacity: 0.85; }
-    .link-btn-app { background: #a78bfa; }
+    .link-btn:hover {
+      background: var(--bg-2);
+    }
+    .link-btn:active { transform: translateY(1px); }
+    .link-b2b { color: var(--blue-deep); border-color: rgba(47,123,244,0.3); }
+    .link-app { color: var(--ink); }
+    .link-btn .arrow {
+      color: var(--blue);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
 
-    #copy-hint { font-size: 0.78rem; color: #4ade80; text-align: center; height: 1em; margin-top: 8px; opacity: 0; transition: opacity 0.3s; }
+    /* === History === */
+    .history {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .history[hidden] { display: none; }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .history-header .label { display: inline-flex; align-items: center; gap: 6px; }
+    .history-header .label::before { content: '>'; color: var(--cyan); font-weight: 700; }
+    .history-clear {
+      flex: 0 0 auto;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 0.1em;
+    }
+    .history-clear:hover { background: var(--bg-2); color: var(--ink); }
+    .history-items {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      background: var(--bg);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .history-item:hover { background: var(--bg-2); border-color: var(--sky); }
+    .history-item.flash {
+      background: rgba(0,196,214,0.18);
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(0,196,214,0.25);
+    }
+    .history-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      font-size: 0.92rem;
+    }
+    .history-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.06em;
+    }
+
+    /* === Rejected list === */
+    .rejected-list {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .rejected-list[hidden] { display: none; }
+    .rejected-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+    }
+    .rejected-header::before {
+      content: '▸';
+      transition: transform 0.2s;
+      font-size: 0.7rem;
+      color: var(--ink-faint);
+    }
+    .rejected-list.open .rejected-header::before {
+      transform: rotate(90deg);
+    }
+    #rejected-items {
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .rejected-list.open #rejected-items {
+      display: flex;
+    }
+    .rejected-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 4px 10px;
+      background: var(--bg);
+      border: 1px solid var(--line-soft);
+      border-radius: 14px;
+      color: var(--ink-soft);
+      letter-spacing: 0.04em;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.65rem;
+      color: var(--ink-faint);
+      padding: 4px 0;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.16em;
+    }
+    .footer-note .sep { opacity: 0.4; margin: 0 6px; }
+
   </style>
 </head>
 <body>
 
-<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v17</span></h1>
-<p class="subtitle">只接受 10 碼條碼</p>
+<div class="wrap">
 
-<div class="scanner-wrap">
-  <video id="video" autoplay muted playsinline></video>
-  <div class="scan-overlay">
-    <div class="scan-box">
-      <div class="scan-line"></div>
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-stack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M3 5v14"/><path d="M7 5v14"/><path d="M11 5v14"/><path d="M15 5v14"/><path d="M19 5v14"/>
+        </svg>
+      </div>
+      <div class="title-block">
+        <h1>條碼讀取器</h1>
+        <div class="subtitle">BARCODE_SCANNER / 10-CODE</div>
+      </div>
+    </div>
+    <div class="session-pill"><span class="live-dot"></span>v18 BLUE</div>
+  </div>
+
+  <!-- Scanner card with meta -->
+  <div class="scanner-card">
+    <div class="scanner-meta">
+      <div class="scanner-meta-left">
+        <span>FMT <strong>CODE_128</strong></span>
+        <span>LEN <strong>10</strong></span>
+      </div>
+      <div class="scanner-meta-right">
+        <span class="rec" id="rec-indicator">LIVE</span>
+      </div>
+    </div>
+    <div class="scanner-wrap">
+      <video id="video" autoplay muted playsinline></video>
+      <div class="scan-overlay">
+        <div class="hud-ticks"></div>
+        <div class="hud-corner-label tl" id="hud-date">[ ---- ]</div>
+        <div class="hud-corner-label tr" id="hud-time">[ --:--:-- ]</div>
+        <div class="hud-corner-label bl">[ 1920×1080 · 30FPS ]</div>
+        <div class="hud-corner-label br">[ CH.01 ]</div>
+        <div class="scan-box">
+          <div class="target-label">— TARGET · LEN_10 —</div>
+          <div class="crosshair-h"></div>
+          <div class="crosshair-v"></div>
+          <div class="crosshair-center"></div>
+          <div class="scan-line"></div>
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="status-bar">
-  <div class="status-dot" id="status-dot"></div>
-  <span id="status-text">按下「開始掃描」以啟動相機</span>
-</div>
-
-<div class="result-card" id="result-card">
-  <div class="result-label">掃描結果（10碼）</div>
-  <div id="result-value">—</div>
-</div>
-<div id="copy-hint">已複製序號！</div>
-
-<div class="history" id="history" hidden>
-  <div class="history-header">
-    <span>掃描歷史 <span id="history-count">(0)</span></span>
-    <button class="history-clear" id="btn-clear-history">清空</button>
+  <!-- Detail status line -->
+  <div class="status-line">
+    <span class="status-dot" id="status-dot"></span>
+    <span id="status-text">按下「開始掃描」以啟動相機</span>
   </div>
-  <div class="history-items" id="history-items"></div>
-</div>
 
-<div class="rejected-list" id="rejected-list" hidden>
-  <div class="rejected-header" id="rejected-header">略過的條碼 <span id="rejected-count">(0)</span></div>
-  <div id="rejected-items"></div>
-</div>
+  <!-- Result -->
+  <div class="result-card" id="result-card">
+    <div class="result-head">
+      <div class="result-label">SERIAL · RESULT</div>
+      <span class="copy-badge">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+        TAP TO COPY
+      </span>
+    </div>
+    <div id="result-value">awaiting</div>
+    <div class="digit-meter">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+  </div>
+  <div id="copy-hint">✓ COPIED_TO_CLIPBOARD</div>
 
-<div class="btn-row">
-  <button id="btn-start">開始掃描</button>
-  <button id="btn-stop" style="display:none">停止掃描</button>
-  <button id="btn-clear">清除結果</button>
-</div>
+  <!-- Actions -->
+  <div class="btn-row">
+    <button id="btn-start"><span class="ico">▶</span> 開始掃描</button>
+    <button id="btn-stop" style="display:none"><span class="ico">■</span> 停止</button>
+    <button id="btn-clear">清除</button>
+  </div>
 
-<div class="link-row">
-  <a class="link-btn" href="https://b2b.skinsurance.com.tw/SKERP/ISNEControl/FrameControl.aspx?_LP=https%3A%2F%2Fb2b.skinsurance.com.tw%2FSKERP%2FB2BWeb%2FB2B%2FlogonB2B.aspx%3FReturnUrl%3D%252fSKERP%252f" target="_blank" rel="noopener">開啟新光 B2B</a>
-  <a class="link-btn link-btn-app" id="btn-form-app" href="form://">開啟行銷與表單</a>
+  <!-- External links -->
+  <div class="link-row">
+    <a class="link-btn link-b2b" href="https://b2b.skinsurance.com.tw/SKERP/ISNEControl/FrameControl.aspx?_LP=https%3A%2F%2Fb2b.skinsurance.com.tw%2FSKERP%2FB2BWeb%2FB2B%2FlogonB2B.aspx%3FReturnUrl%3D%252fSKERP%252f" target="_blank" rel="noopener">新光 B2B <span class="arrow">↗</span></a>
+    <a class="link-btn link-app" id="btn-form-app" href="form://">行銷與表單 <span class="arrow">↗</span></a>
+  </div>
+
+  <!-- Scan history (hidden until first scan) -->
+  <div class="history" id="history" hidden>
+    <div class="history-header">
+      <span class="label">HISTORY · 掃描歷史 <span id="history-count">(0)</span></span>
+      <button type="button" class="history-clear" id="btn-clear-history">CLEAR</button>
+    </div>
+    <div class="history-items" id="history-items"></div>
+  </div>
+
+  <!-- Rejected list (hidden until first reject) -->
+  <div class="rejected-list" id="rejected-list" hidden>
+    <div class="rejected-header" id="rejected-header">略過的條碼 <span id="rejected-count">(0)</span></div>
+    <div id="rejected-items"></div>
+  </div>
+
+  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v18_BLUE_TECH</div>
 </div>
 
 <script type="module">
-  import {
-    BrowserMultiFormatReader
-  } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm';
-  import {
-    DecodeHintType,
-    BarcodeFormat
-  } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/+esm';
+  import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm';
+  import { DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/+esm';
 
-  const video       = document.getElementById('video');
-  const statusDot   = document.getElementById('status-dot');
-  const statusText  = document.getElementById('status-text');
-  const resultCard  = document.getElementById('result-card');
-  const resultValue = document.getElementById('result-value');
-  const rejectedDiv = document.getElementById('rejected-items');
+  const video        = document.getElementById('video');
+  const statusDot    = document.getElementById('status-dot');
+  const statusText   = document.getElementById('status-text');
+  const hudDate      = document.getElementById('hud-date');
+  const hudTime      = document.getElementById('hud-time');
+  const resultCard   = document.getElementById('result-card');
+  const resultValue  = document.getElementById('result-value');
+  const copyHint     = document.getElementById('copy-hint');
+  const btnStart     = document.getElementById('btn-start');
+  const btnStop      = document.getElementById('btn-stop');
+  const btnClear     = document.getElementById('btn-clear');
+  const btnFormApp   = document.getElementById('btn-form-app');
+
   const rejectedList   = document.getElementById('rejected-list');
   const rejectedHeader = document.getElementById('rejected-header');
   const rejectedCount  = document.getElementById('rejected-count');
+  const rejectedDiv    = document.getElementById('rejected-items');
   const historyEl      = document.getElementById('history');
   const historyItems   = document.getElementById('history-items');
   const historyCount   = document.getElementById('history-count');
   const btnClearHistory = document.getElementById('btn-clear-history');
-  const btnFormApp      = document.getElementById('btn-form-app');
-
-  // v16 嘗試過 form://?serial=... 但 App 不吃參數,維持純 form://
-  // 改在點擊瞬間(真.user gesture)重新複製到剪貼簿,確保進 App 後一定能貼上
-  let currentSerial = '';
-  function updateFormLink(serial) {
-    currentSerial = serial || '';
-  }
-  const copyHint    = document.getElementById('copy-hint');
-  const btnStart    = document.getElementById('btn-start');
-  const btnStop     = document.getElementById('btn-stop');
-  const btnClear    = document.getElementById('btn-clear');
 
   const TARGET_LENGTH = 10;
-  let codeReader  = null;
-  let controls    = null;
-  let running     = false;
-  let lastFound   = '';
-  let cooldown    = false;
+  let codeReader = null;
+  let controls = null;
+  let running = false;
+  let lastFound = '';
+  let currentSerial = '';
   const rejectedSet = new Set();
 
-  // iPhone 盒裝序號是 Code 128。只啟用 Code 128 大幅降低偽讀率
   const hints = new Map();
   hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128]);
   hints.set(DecodeHintType.TRY_HARDER, true);
 
-  // Apple 盒裝 (S) 序號條碼會在前面多一個 S(GS1-128 AI)。
-  // 因此接受兩種:純 10 碼,或 S + 10 碼(剝掉 S)。
+  // Apple 盒裝 (S) 序號條碼會多一個 S 前綴(GS1-128 AI),剝除後是 10 碼
   function normalizeSerial(raw) {
     if (/^[A-Z0-9]{10}$/.test(raw)) return raw;
     if (/^S[A-Z0-9]{10}$/.test(raw)) return raw.slice(1);
     return null;
   }
-  // 略過清單只顯示「接近正確」的字串，亂碼直接丟棄
   const REJECT_VISIBLE_RE = /^[A-Za-z0-9]{6,16}$/;
-  // 同一個 code 連續讀到幾次才採信。v4:S + 10 碼大寫英數本身已極嚴格,改成 1 即時接受
   const CONFIRM_COUNT = 1;
-  let pendingCode  = '';
-  let pendingHits  = 0;
+  let pendingCode = '';
+  let pendingHits = 0;
 
   function setStatus(state, text) {
     statusDot.className = 'status-dot' + (state ? ' ' + state : '');
     statusText.textContent = text;
   }
 
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function updateClock() {
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    if (hudDate) hudDate.textContent = `[ ${dateStr} ]`;
+    if (hudTime) hudTime.textContent = `[ ${timeStr} ]`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
   function showResult(code) {
     resultValue.textContent = code;
-    resultCard.className = 'result-card success';
+    resultCard.classList.add('success');
     resultCard.onclick = () => {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) return;
       navigator.clipboard.writeText(code).then(() => {
         copyHint.style.opacity = '1';
         setTimeout(() => copyHint.style.opacity = '0', 1800);
@@ -362,8 +867,7 @@
       row.appendChild(codeSpan);
       row.appendChild(timeSpan);
       row.addEventListener('click', () => {
-        // 點歷史也更新 Form App 連結,方便回頭把某筆序號送過去
-        updateFormLink(item.code);
+        currentSerial = item.code;
         if (!navigator.clipboard || !navigator.clipboard.writeText) return;
         navigator.clipboard.writeText(item.code).then(() => {
           row.classList.add('flash');
@@ -379,40 +883,31 @@
   function handleCode(raw) {
     if (!running) return; // 已停止,忽略晚到的 callback
     const code = normalizeSerial(raw);
-
     if (code) {
-      // 連續讀到同一個值 CONFIRM_COUNT 次才採信，避免單幀偽讀
-      if (code === pendingCode) {
-        pendingHits++;
-      } else {
-        pendingCode = code;
-        pendingHits = 1;
-      }
+      if (code === pendingCode) { pendingHits++; } else { pendingCode = code; pendingHits = 1; }
       if (pendingHits < CONFIRM_COUNT) return;
 
       lastFound = code;
+      currentSerial = code;
       showResult(code);
       addHistory(code);
-      updateFormLink(code);
       if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
       // 找到即停止相機,節省電力 & 避免重複觸發
       stopScanner();
       // 自動複製到剪貼簿。iOS Safari 在非手勢情境可能會拒絕,失敗就退回手動模式
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code).then(() => {
-          setStatus('found', `已複製序號：${code}`);
+          setStatus('found', `✓ 已複製序號:${code}`);
           copyHint.style.opacity = '1';
           setTimeout(() => copyHint.style.opacity = '0', 1800);
         }).catch(() => {
-          setStatus('found', '找到序號！相機已關閉，點擊結果可複製');
+          setStatus('found', '✓ 找到 10 碼序號！點擊結果可複製');
         });
       } else {
-        setStatus('found', '找到序號！相機已關閉，點擊結果可複製');
+        setStatus('found', '✓ 找到 10 碼序號！點擊結果可複製');
       }
       return;
     }
-
-    // 不符合接受規則：重置 pending，並有條件地加入略過清單
     pendingCode = '';
     pendingHits = 0;
     if (REJECT_VISIBLE_RE.test(raw)) {
@@ -420,7 +915,6 @@
       setStatus('rejected', `略過：「${raw}」共 ${raw.length} 碼`);
       setTimeout(() => { if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…'); }, 1200);
     }
-    // 含特殊字元/亂碼：靜默丟棄
   }
 
   async function startScanner(silent = false) {
@@ -433,31 +927,21 @@
       delayBetweenScanSuccess: 400
     });
 
-    // 高解析度 + 連續自動對焦,讓條碼線條更銳利、更不容易模糊
     const videoConstraints = {
       facingMode: { ideal: 'environment' },
-      width:      { ideal: 1920 },
-      height:     { ideal: 1080 },
-      frameRate:  { ideal: 30 },
-      focusMode:  'continuous'
+      width:  { ideal: 1920 },
+      height: { ideal: 1080 },
+      frameRate: { ideal: 30 },
+      focusMode: 'continuous'
     };
 
     try {
       controls = await codeReader.decodeFromConstraints(
-        { video: videoConstraints },
-        video,
-        (result, err) => {
-          if (result) {
-            handleCode(result.getText().trim());
-          }
-          // err 多半是「這一幀沒讀到」，故意忽略
-        }
+        { video: videoConstraints }, video,
+        (result) => { if (result) handleCode(result.getText().trim()); }
       );
-
-      // 啟動後再對 track 套用 advanced 對焦/曝光（部分 iOS 支援）
       const track = video.srcObject && video.srcObject.getVideoTracks
-        ? video.srcObject.getVideoTracks()[0]
-        : null;
+        ? video.srcObject.getVideoTracks()[0] : null;
       if (track && track.applyConstraints) {
         track.applyConstraints({
           advanced: [
@@ -470,7 +954,7 @@
     } catch (e) {
       codeReader = null;
       btnStart.disabled = false;
-      if (silent) return;  // 自動啟動失敗:不顯示錯誤,讓使用者手動點按鈕
+      if (silent) return;
       if (e && e.name === 'NotAllowedError') {
         setStatus('', '相機權限被拒絕，請到 Safari 設定中允許相機');
       } else {
@@ -481,7 +965,7 @@
 
     running = true;
     btnStart.style.display = 'none';
-    btnStop.style.display  = 'block';
+    btnStop.style.display  = 'inline-flex';
     setStatus('scanning', '掃描中，將鏡頭對準條碼…');
   }
 
@@ -490,24 +974,23 @@
     if (controls) { try { controls.stop(); } catch (_) {} controls = null; }
     codeReader = null;
     video.srcObject = null;
-    btnStop.style.display  = 'none';
+    btnStop.style.display = 'none';
     btnStart.style.display = '';
     btnStart.disabled = false;
     setStatus('', '已停止掃描');
   }
 
   function clearAll() {
-    resultValue.textContent = '—';
-    resultCard.className = 'result-card';
+    resultValue.textContent = 'awaiting';
+    resultCard.classList.remove('success');
     resultCard.onclick = null;
     rejectedDiv.innerHTML = '';
     rejectedSet.clear();
     rejectedList.hidden = true;
     rejectedList.classList.remove('open');
     rejectedCount.textContent = '(0)';
-    updateFormLink(null);
     lastFound = '';
-    cooldown = false;
+    currentSerial = '';
     pendingCode = '';
     pendingHits = 0;
     if (running) setStatus('scanning', '掃描中，將鏡頭對準條碼…');
@@ -521,8 +1004,7 @@
   });
   rejectedHeader.addEventListener('click', () => rejectedList.classList.toggle('open'));
 
-  // 點「開啟行銷與表單」當下再複製一次序號 —— 此時是真的 user gesture,
-  // iOS Safari 一定允許 clipboard.writeText。進 App 後長按欄位即可貼上。
+  // 點「行銷與表單」當下再複製一次序號(真.user gesture,iOS Safari 一定允許)
   btnFormApp.addEventListener('click', () => {
     if (currentSerial && navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(currentSerial).catch(() => {});
@@ -532,9 +1014,7 @@
   // 開頁就 render 一次歷史(從 localStorage 拉)
   renderHistory();
 
-  // 嘗試載入後自動啟動相機。
-  // iOS Safari 因安全規範禁止無使用者手勢的 getUserMedia,會靜默失敗,
-  // 使用者改按「開始掃描」即可;桌面 Chrome / Android Chrome 通常會直接開啟。
+  // 嘗試載入後自動啟動相機(iOS Safari 因安全規範會靜默失敗,使用者改按按鈕)
   window.addEventListener('load', () => { startScanner(true); });
 </script>
 </body>
