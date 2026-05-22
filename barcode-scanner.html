@@ -98,7 +98,6 @@
     .result-card.success  { border-color: #4ade80; cursor: pointer; }
     .result-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
     #result-value { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.12em; color: #f1f5f9; word-break: break-all; min-height: 2.2rem; }
-    #result-meta  { margin-top: 6px; font-size: 0.8rem; color: #64748b; }
 
     .rejected-list { width: 100%; max-width: 480px; margin-top: 16px; }
     .rejected-header { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; margin-bottom: 8px; }
@@ -118,7 +117,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v5</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v6</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -142,7 +141,6 @@
 <div class="result-card" id="result-card">
   <div class="result-label">掃描結果（10碼）</div>
   <div id="result-value">—</div>
-  <div id="result-meta"></div>
 </div>
 <div id="copy-hint">已複製到剪貼簿！</div>
 
@@ -171,7 +169,6 @@
   const statusText  = document.getElementById('status-text');
   const resultCard  = document.getElementById('result-card');
   const resultValue = document.getElementById('result-value');
-  const resultMeta  = document.getElementById('result-meta');
   const rejectedDiv = document.getElementById('rejected-items');
   const copyHint    = document.getElementById('copy-hint');
   const btnStart    = document.getElementById('btn-start');
@@ -194,8 +191,8 @@
   // Apple 盒裝 (S) 序號條碼會在前面多一個 S(GS1-128 AI)。
   // 因此接受兩種:純 10 碼,或 S + 10 碼(剝掉 S)。
   function normalizeSerial(raw) {
-    if (/^[A-Z0-9]{10}$/.test(raw)) return { value: raw, stripped: false };
-    if (/^S[A-Z0-9]{10}$/.test(raw)) return { value: raw.slice(1), stripped: true };
+    if (/^[A-Z0-9]{10}$/.test(raw)) return raw;
+    if (/^S[A-Z0-9]{10}$/.test(raw)) return raw.slice(1);
     return null;
   }
   // 略過清單只顯示「接近正確」的字串，亂碼直接丟棄
@@ -210,9 +207,8 @@
     statusText.textContent = text;
   }
 
-  function showResult(code, format) {
+  function showResult(code) {
     resultValue.textContent = code;
-    resultMeta.textContent  = `格式：${format}　長度：${code.length} 碼`;
     resultCard.className = 'result-card success';
     resultCard.onclick = () => {
       navigator.clipboard.writeText(code).then(() => {
@@ -231,11 +227,10 @@
     rejectedDiv.prepend(tag);
   }
 
-  function handleCode(raw, format) {
-    const norm = normalizeSerial(raw);
+  function handleCode(raw) {
+    const code = normalizeSerial(raw);
 
-    if (norm) {
-      const code = norm.value;
+    if (code) {
       if (cooldown && code === lastFound) return;
 
       // 連續讀到同一個值 CONFIRM_COUNT 次才採信，避免單幀偽讀
@@ -249,8 +244,7 @@
 
       if (code !== lastFound) {
         lastFound = code;
-        const fmtLabel = norm.stripped ? `${format} (剝除 S 前綴)` : format;
-        showResult(code, fmtLabel);
+        showResult(code);
         setStatus('found', '找到 10 碼序號！點擊結果可複製');
         if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
         cooldown = true;
@@ -295,10 +289,7 @@
         video,
         (result, err) => {
           if (result) {
-            const text   = result.getText().trim();
-            const fmtId  = result.getBarcodeFormat();
-            const fmtStr = BarcodeFormat[fmtId] || String(fmtId);
-            handleCode(text, fmtStr);
+            handleCode(result.getText().trim());
           }
           // err 多半是「這一幀沒讀到」，故意忽略
         }
@@ -347,7 +338,6 @@
 
   function clearAll() {
     resultValue.textContent = '—';
-    resultMeta.textContent  = '';
     resultCard.className = 'result-card';
     resultCard.onclick = null;
     rejectedDiv.innerHTML = '';
