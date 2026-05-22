@@ -644,7 +644,7 @@
         <div class="subtitle">BARCODE_SCANNER / 10-CODE</div>
       </div>
     </div>
-    <div class="session-pill"><span class="live-dot"></span>v23 BLUE</div>
+    <div class="session-pill"><span class="live-dot"></span>v24 BLUE</div>
   </div>
 
   <!-- Scanner card with meta -->
@@ -732,7 +732,7 @@
     <div id="rejected-items"></div>
   </div>
 
-  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v23_BLUE_TECH</div>
+  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v24_BLUE_TECH</div>
 </div>
 
 <script type="module">
@@ -942,7 +942,7 @@
     if (!silent) setStatus('scanning', '正在請求相機權限…');
 
     codeReader = new BrowserMultiFormatReader(hints, {
-      delayBetweenScanAttempts: 200,  // v21: 50→200ms,CPU 用量降 75%,使用者無感
+      delayBetweenScanAttempts: 100,  // v24: 200→100ms,找回 v18 那種即時感,CPU 仍是 v18 的 1/2
       delayBetweenScanSuccess: 800
     });
 
