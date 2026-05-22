@@ -644,7 +644,7 @@
         <div class="subtitle">BARCODE_SCANNER / 10-CODE</div>
       </div>
     </div>
-    <div class="session-pill"><span class="live-dot"></span>v22 BLUE</div>
+    <div class="session-pill"><span class="live-dot"></span>v23 BLUE</div>
   </div>
 
   <!-- Scanner card with meta -->
@@ -664,7 +664,7 @@
         <div class="hud-ticks"></div>
         <div class="hud-corner-label tl" id="hud-date">[ ---- ]</div>
         <div class="hud-corner-label tr" id="hud-time">[ --:--:-- ]</div>
-        <div class="hud-corner-label bl">[ 2560×1440 · 15FPS ]</div>
+        <div class="hud-corner-label bl">[ 1920×1080 · 15FPS ]</div>
         <div class="hud-corner-label br">[ CH.01 ]</div>
         <div class="scan-box">
           <div class="target-label">— TARGET · LEN_10 —</div>
@@ -732,7 +732,7 @@
     <div id="rejected-items"></div>
   </div>
 
-  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v22_BLUE_TECH</div>
+  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v23_BLUE_TECH</div>
 </div>
 
 <script type="module">
@@ -948,9 +948,9 @@
 
     const videoConstraints = {
       facingMode: { ideal: 'environment' },
-      width:  { ideal: 2560 },         // v22: 1920→2560,多一點容錯
-      height: { ideal: 1440 },
-      frameRate: { ideal: 15 },        // v21: 30→15fps,相機 ISP 半功率,大幅省電
+      width:  { ideal: 1920 },         // v23: 退回 v21 的甜蜜點
+      height: { ideal: 1080 },
+      frameRate: { ideal: 15 },
       focusMode: 'continuous'
     };
 
