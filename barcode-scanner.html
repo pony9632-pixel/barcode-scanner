@@ -256,7 +256,11 @@
 
       await scanner.start(
         { facingMode: 'environment' },
-        { fps: 15, aspectRatio: 16 / 9 },
+        {
+          fps: 15,
+          aspectRatio: 16 / 9,
+          qrbox: (w, h) => ({ width: Math.floor(w * 0.85), height: Math.floor(h * 0.28) }),
+        },
         (text, result) => {
           const code   = text.trim();
           const format = result?.result?.format?.formatName ?? '';
