@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+  <text x="256" y="148" text-anchor="middle"
+        font-family="-apple-system, system-ui, 'Helvetica Neue', sans-serif"
+        font-size="58" font-weight="800" fill="#f1f5f9" letter-spacing="4">STUDIO A</text>
+  <g fill="#63e6be">
+    <rect x="78"  y="210" width="14" height="200"/>
+    <rect x="106" y="210" width="8"  height="200"/>
+    <rect x="126" y="210" width="22" height="200"/>
+    <rect x="164" y="210" width="6"  height="200"/>
+    <rect x="184" y="210" width="14" height="200"/>
+    <rect x="212" y="210" width="10" height="200"/>
+    <rect x="236" y="210" width="24" height="200"/>
+    <rect x="278" y="210" width="6"  height="200"/>
+    <rect x="298" y="210" width="14" height="200"/>
+    <rect x="326" y="210" width="20" height="200"/>
+    <rect x="360" y="210" width="8"  height="200"/>
+    <rect x="382" y="210" width="14" height="200"/>
+    <rect x="408" y="210" width="6"  height="200"/>
+    <rect x="424" y="210" width="14" height="200"/>
+  </g>
+  <text x="256" y="466" text-anchor="middle"
+        font-family="-apple-system, system-ui, 'Helvetica Neue', sans-serif"
+        font-size="44" font-weight="700" fill="#94a3b8" letter-spacing="8">SCAN</text>
+</svg>

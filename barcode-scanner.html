@@ -2,8 +2,17 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>STUDIO A 條碼掃描</title>
+
+  <!-- PWA + iOS Web App -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="STUDIO A" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,7 +24,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
     }
 
     h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; color: #e2e8f0; }
@@ -100,8 +109,17 @@
     #result-value { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.12em; color: #f1f5f9; word-break: break-all; min-height: 2.2rem; }
 
     .rejected-list { width: 100%; max-width: 480px; margin-top: 16px; }
-    .rejected-header { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; margin-bottom: 8px; }
-    #rejected-items { display: flex; flex-wrap: wrap; gap: 6px; }
+    .rejected-list[hidden] { display: none; }
+    .rejected-header {
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #475569; margin-bottom: 8px;
+      cursor: pointer; user-select: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .rejected-header::before { content: '▸'; transition: transform 0.2s; font-size: 0.9rem; }
+    .rejected-list.open .rejected-header::before { transform: rotate(90deg); }
+    #rejected-items { display: none; flex-wrap: wrap; gap: 6px; }
+    .rejected-list.open #rejected-items { display: flex; }
     .rejected-tag { padding: 4px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 20px; font-size: 0.78rem; color: #94a3b8; }
 
     .btn-row { display: flex; gap: 10px; margin-top: 16px; width: 100%; max-width: 480px; }
@@ -133,7 +151,7 @@
 </head>
 <body>
 
-<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v13</span></h1>
+<h1>STUDIO A 條碼掃描 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v14</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -160,8 +178,8 @@
 </div>
 <div id="copy-hint">已複製序號！</div>
 
-<div class="rejected-list">
-  <div class="rejected-header">略過的條碼（非10碼）</div>
+<div class="rejected-list" id="rejected-list" hidden>
+  <div class="rejected-header" id="rejected-header">略過的條碼 <span id="rejected-count">(0)</span></div>
   <div id="rejected-items"></div>
 </div>
 
@@ -191,6 +209,9 @@
   const resultCard  = document.getElementById('result-card');
   const resultValue = document.getElementById('result-value');
   const rejectedDiv = document.getElementById('rejected-items');
+  const rejectedList   = document.getElementById('rejected-list');
+  const rejectedHeader = document.getElementById('rejected-header');
+  const rejectedCount  = document.getElementById('rejected-count');
   const copyHint    = document.getElementById('copy-hint');
   const btnStart    = document.getElementById('btn-start');
   const btnStop     = document.getElementById('btn-stop');
@@ -246,6 +267,8 @@
     tag.className = 'rejected-tag';
     tag.textContent = `${code} (${code.length}碼)`;
     rejectedDiv.prepend(tag);
+    rejectedList.hidden = false;
+    rejectedCount.textContent = `(${rejectedSet.size})`;
   }
 
   function handleCode(raw) {
@@ -372,6 +395,9 @@
     resultCard.onclick = null;
     rejectedDiv.innerHTML = '';
     rejectedSet.clear();
+    rejectedList.hidden = true;
+    rejectedList.classList.remove('open');
+    rejectedCount.textContent = '(0)';
     lastFound = '';
     cooldown = false;
     pendingCode = '';
@@ -382,6 +408,7 @@
   btnStart.addEventListener('click', () => startScanner(false));
   btnStop.addEventListener('click', stopScanner);
   btnClear.addEventListener('click', clearAll);
+  rejectedHeader.addEventListener('click', () => rejectedList.classList.toggle('open'));
 
   // 嘗試載入後自動啟動相機。
   // iOS Safari 因安全規範禁止無使用者手勢的 getUserMedia,會靜默失敗,
