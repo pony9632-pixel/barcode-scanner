@@ -255,7 +255,7 @@
       scanner = new Html5Qrcode('reader-view', { formatsToSupport: formats });
 
       await scanner.start(
-        { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+        { facingMode: 'environment' },
         { fps: 15, aspectRatio: 16 / 9 },
         (text, result) => {
           const code   = text.trim();
