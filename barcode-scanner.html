@@ -25,6 +25,8 @@
       position: relative;
       width: 100%;
       max-width: 480px;
+      aspect-ratio: 4 / 3;
+      max-height: 50vh;
       border-radius: 16px;
       overflow: hidden;
       background: #000;
@@ -33,9 +35,10 @@
 
     #video {
       width: 100%;
+      height: 100%;
       display: block;
       background: #000;
-      min-height: 200px;
+      object-fit: cover;
     }
 
     .scan-overlay { position: absolute; inset: 0; pointer-events: none; }
@@ -115,7 +118,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v4</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v5</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
