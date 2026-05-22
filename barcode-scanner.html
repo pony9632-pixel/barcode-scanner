@@ -115,7 +115,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v3</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v4</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -197,8 +197,8 @@
   }
   // 略過清單只顯示「接近正確」的字串，亂碼直接丟棄
   const REJECT_VISIBLE_RE = /^[A-Za-z0-9]{6,16}$/;
-  // 同一個 code 連續讀到幾次才採信
-  const CONFIRM_COUNT = 2;
+  // 同一個 code 連續讀到幾次才採信。v4:S + 10 碼大寫英數本身已極嚴格,改成 1 即時接受
+  const CONFIRM_COUNT = 1;
   let pendingCode  = '';
   let pendingHits  = 0;
 
@@ -273,13 +273,22 @@
     setStatus('scanning', '正在請求相機權限…');
 
     codeReader = new BrowserMultiFormatReader(hints, {
-      delayBetweenScanAttempts: 100,
-      delayBetweenScanSuccess: 800
+      delayBetweenScanAttempts: 50,
+      delayBetweenScanSuccess: 400
     });
+
+    // 高解析度 + 連續自動對焦,讓條碼線條更銳利、更不容易模糊
+    const videoConstraints = {
+      facingMode: { ideal: 'environment' },
+      width:      { ideal: 1920 },
+      height:     { ideal: 1080 },
+      frameRate:  { ideal: 30 },
+      focusMode:  'continuous'
+    };
 
     try {
       controls = await codeReader.decodeFromConstraints(
-        { video: { facingMode: { ideal: 'environment' } } },
+        { video: videoConstraints },
         video,
         (result, err) => {
           if (result) {
@@ -291,6 +300,20 @@
           // err 多半是「這一幀沒讀到」，故意忽略
         }
       );
+
+      // 啟動後再對 track 套用 advanced 對焦/曝光（部分 iOS 支援）
+      const track = video.srcObject && video.srcObject.getVideoTracks
+        ? video.srcObject.getVideoTracks()[0]
+        : null;
+      if (track && track.applyConstraints) {
+        track.applyConstraints({
+          advanced: [
+            { focusMode: 'continuous' },
+            { exposureMode: 'continuous' },
+            { whiteBalanceMode: 'continuous' }
+          ]
+        }).catch(() => {});
+      }
     } catch (e) {
       codeReader = null;
       btnStart.disabled = false;
