@@ -644,7 +644,7 @@
         <div class="subtitle">BARCODE_SCANNER / 10-CODE</div>
       </div>
     </div>
-    <div class="session-pill"><span class="live-dot"></span>v19 BLUE</div>
+    <div class="session-pill"><span class="live-dot"></span>v20 BLUE</div>
   </div>
 
   <!-- Scanner card with meta -->
@@ -732,7 +732,7 @@
     <div id="rejected-items"></div>
   </div>
 
-  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v19_BLUE_TECH</div>
+  <div class="footer-note">CODE_128<span class="sep">·</span>LEN_10<span class="sep">·</span>v20_BLUE_TECH</div>
 </div>
 
 <script type="module">
@@ -972,9 +972,15 @@
 
   async function stopScanner() {
     running = false;
+    // 1. 關掉 ZXing 的掃描迴圈
     if (controls) { try { controls.stop(); } catch (_) {} controls = null; }
-    codeReader = null;
+    // 2. 明確釋放所有相機軌道(讓 iOS 的「錄影中」綠點消失)
+    //    ZXing 的 controls.stop() 不一定會釋放底層 MediaStreamTrack
+    if (video.srcObject && typeof video.srcObject.getTracks === 'function') {
+      try { video.srcObject.getTracks().forEach(t => t.stop()); } catch (_) {}
+    }
     video.srcObject = null;
+    codeReader = null;
     btnStop.style.display = 'none';
     btnStart.style.display = '';
     btnStart.disabled = false;
