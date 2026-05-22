@@ -115,7 +115,7 @@
 </head>
 <body>
 
-<h1>條碼讀取器</h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v1</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -154,7 +154,15 @@
   <button id="btn-clear">清除結果</button>
 </div>
 
-<script>
+<script type="module">
+  import {
+    BrowserMultiFormatReader
+  } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm';
+  import {
+    DecodeHintType,
+    BarcodeFormat
+  } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/+esm';
+
   const video       = document.getElementById('video');
   const statusDot   = document.getElementById('status-dot');
   const statusText  = document.getElementById('status-text');
@@ -168,13 +176,29 @@
   const btnClear    = document.getElementById('btn-clear');
 
   const TARGET_LENGTH = 10;
-  let mediaStream = null;
-  let animFrame   = null;
-  let detector    = null;
+  let codeReader  = null;
+  let controls    = null;
   let running     = false;
   let lastFound   = '';
   let cooldown    = false;
   const rejectedSet = new Set();
+
+  // 只啟用線性條碼 + QR（iPhone 17 Pro 盒裝序號是 Code 128）
+  const hints = new Map();
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+    BarcodeFormat.CODE_128,
+    BarcodeFormat.CODE_39,
+    BarcodeFormat.CODE_93,
+    BarcodeFormat.EAN_13,
+    BarcodeFormat.EAN_8,
+    BarcodeFormat.UPC_A,
+    BarcodeFormat.UPC_E,
+    BarcodeFormat.ITF,
+    BarcodeFormat.CODABAR,
+    BarcodeFormat.QR_CODE,
+    BarcodeFormat.DATA_MATRIX
+  ]);
+  hints.set(DecodeHintType.TRY_HARDER, true);
 
   function setStatus(state, text) {
     statusDot.className = 'status-dot' + (state ? ' ' + state : '');
@@ -221,55 +245,37 @@
     }
   }
 
-  async function scanLoop() {
-    if (!running) return;
-    if (video.readyState >= 2) {
-      try {
-        const barcodes = await detector.detect(video);
-        for (const b of barcodes) handleCode(b.rawValue.trim(), b.format);
-      } catch (_) {}
-    }
-    animFrame = requestAnimationFrame(scanLoop);
-  }
-
   async function startScanner() {
     if (running) return;
     btnStart.disabled = true;
     setStatus('scanning', '正在請求相機權限…');
 
-    // 1. 確認瀏覽器支援原生 BarcodeDetector
-    if (!('BarcodeDetector' in window)) {
-      setStatus('', '您的瀏覽器不支援條碼偵測。請使用 iOS 17+ Safari 或 Android Chrome。');
-      btnStart.disabled = false;
-      return;
-    }
+    codeReader = new BrowserMultiFormatReader(hints, {
+      delayBetweenScanAttempts: 100,
+      delayBetweenScanSuccess: 800
+    });
 
-    // 2. 取得支援的條碼格式
-    const wantFormats = ['code_128','code_39','code_93','ean_13','ean_8',
-                         'upc_a','upc_e','itf','codabar','qr_code','data_matrix','pdf417'];
-    let useFormats = wantFormats;
     try {
-      const supported = await BarcodeDetector.getSupportedFormats();
-      useFormats = wantFormats.filter(f => supported.includes(f));
-      if (useFormats.length === 0) useFormats = wantFormats;
-    } catch (_) {}
-
-    detector = new BarcodeDetector({ formats: useFormats });
-
-    // 3. 開啟相機（觸發權限詢問）
-    try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } }
-      });
-      video.srcObject = mediaStream;
-      await video.play();
+      controls = await codeReader.decodeFromConstraints(
+        { video: { facingMode: { ideal: 'environment' } } },
+        video,
+        (result, err) => {
+          if (result) {
+            const text   = result.getText().trim();
+            const fmtId  = result.getBarcodeFormat();
+            const fmtStr = BarcodeFormat[fmtId] || String(fmtId);
+            handleCode(text, fmtStr);
+          }
+          // err 多半是「這一幀沒讀到」，故意忽略
+        }
+      );
     } catch (e) {
-      detector = null;
+      codeReader = null;
       btnStart.disabled = false;
-      if (e.name === 'NotAllowedError') {
-        setStatus('', '相機權限被拒絕，請到瀏覽器設定中允許相機');
+      if (e && e.name === 'NotAllowedError') {
+        setStatus('', '相機權限被拒絕，請到 Safari 設定中允許相機');
       } else {
-        setStatus('', `無法開啟相機：${e.message}`);
+        setStatus('', `無法開啟相機：${(e && e.message) || e}`);
       }
       return;
     }
@@ -278,15 +284,13 @@
     btnStart.style.display = 'none';
     btnStop.style.display  = '';
     setStatus('scanning', '掃描中，將鏡頭對準條碼…');
-    scanLoop();
   }
 
   async function stopScanner() {
     running = false;
-    if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-    if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+    if (controls) { try { controls.stop(); } catch (_) {} controls = null; }
+    codeReader = null;
     video.srcObject = null;
-    detector = null;
     btnStop.style.display  = 'none';
     btnStart.style.display = '';
     btnStart.disabled = false;
