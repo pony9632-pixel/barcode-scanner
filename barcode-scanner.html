@@ -112,12 +112,27 @@
     #btn-stop  { background: #f87171; color: #0f172a; }
     #btn-clear { background: #334155; color: #e2e8f0; }
 
+    .link-row { display: flex; margin-top: 10px; width: 100%; max-width: 480px; }
+    .link-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      background: #38bdf8;
+      color: #0f172a;
+      transition: opacity 0.2s;
+    }
+    .link-btn:hover { opacity: 0.85; }
+
     #copy-hint { font-size: 0.78rem; color: #4ade80; text-align: center; height: 1em; margin-top: 8px; opacity: 0; transition: opacity 0.3s; }
   </style>
 </head>
 <body>
 
-<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v6</span></h1>
+<h1>條碼讀取器 <span style="font-size:0.7rem;color:#63e6be;font-weight:500;vertical-align:middle;">v7</span></h1>
 <p class="subtitle">只接受 10 碼條碼</p>
 
 <div class="scanner-wrap">
@@ -153,6 +168,10 @@
   <button id="btn-start">開始掃描</button>
   <button id="btn-stop" style="display:none">停止掃描</button>
   <button id="btn-clear">清除結果</button>
+</div>
+
+<div class="link-row">
+  <a class="link-btn" href="https://b2b.skinsurance.com.tw/" target="_blank" rel="noopener">開啟新光 B2B</a>
 </div>
 
 <script type="module">
